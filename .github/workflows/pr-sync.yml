@@ -1,0 +1,35 @@
+name: 代码仓 PR 同步
+
+on:
+  pull_request_target:
+    branches:
+      - main
+  issue_comment:
+    types:
+      - created
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  sync:
+    name: PR 同步结果
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'pull_request_target' ||
+      (github.event_name == 'issue_comment'
+      && github.event.issue.pull_request
+      && contains(github.event.comment.body, 'compile#openlibing'))
+    steps:
+      - name: PR 同步结果
+        uses: cuishiying-1/coderepo-sync-action@main
+        env:
+          # GitHub 不会自动注入 GITHUB_TOKEN 环境变量，需显式传入流水线自动生成的 token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          OPENLIBING_APIG_CODE: ${{ secrets.OPENLIBING_APIG_CODE }}
+          OPENLIBING_APIG_KEY: ${{ secrets.OPENLIBING_APIG_KEY }}
+          OPENLIBING_APIG_SECRET: ${{ secrets.OPENLIBING_APIG_SECRET }}
+          IGNORE_FAILURE: 'true'
+          OPENLIBING_APIG_URL: ${{ vars.OPENLIBING_APIG_URL }}
